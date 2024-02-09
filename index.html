@@ -90,7 +90,7 @@
 <body onload="loadGame()" onkeypress="move(event)">
 	<div style="text-align:center"><canvas width="800" height="600" id="canvas"></canvas></div>
 	<hr class="seperator"> <!--stuff to do with points-->
-	<div style="text-align: center; font-size: 40px;">You have <span id="pointCount">0</span> points</div>
+	<div style="text-align: center; font-size: 40px;">You have <span id="pointCount">0</span> points <span id="ppsDisplay"></span></div>
 	<div style="text-align: center; font-size: 40px;" id="levelDisplay">Level: <span id="levelCount">0</span> [XP: <span id="xpCount">0/5</span>]</div>
 	<br>
 	<table class="upgradeTable">
@@ -515,6 +515,7 @@ var player = {
 	xpUnlocked: false,
 	prestigeUnlocked: false,
 	goldUnlocked: false,
+	PPSUnlocked: false,
 
 	//settings
 	settings: {
@@ -909,6 +910,8 @@ function render() {
 
 	//points section
 	GEID("pointCount").textContent = fix(player.points)
+	GEID("ppsDisplay").textContent = "(" + fix(player.PPS) + "/s)"
+	GEID("ppsDisplay").hidden = !player.PPSUnlocked
 	GEID("levelDisplay").hidden = !player.xpUnlocked
 	GEID("levelCount").textContent = player.level
 	GEID("xpCount").textContent = fix(player.xp) + "/" + fix(getEXPReq())
@@ -1065,6 +1068,9 @@ function update() {
 
 	//unlock gold
 	if (gt(player.gold,0)) player.goldUnlocked = true
+
+	//unlock pps display
+	if (gt(player.PPS, 0)) player.PPSUnlocked = true
 
 
 	//change canvas size based on w/h
