@@ -1,0 +1,1101 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>what..</title>
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&amp;display=swap" rel="stylesheet">
+	<style>
+		* {
+			font-family: "Jetbrains Mono", monospace;
+		}
+		#canvas {
+			image-rendering: pixelated;
+		}
+		.seperator {
+			height: 5px;
+			background-color: black;
+			margin-left: 0px;
+			margin-right: 0px;
+			margin-top: 40px;
+			margin-bottom: 40px;
+		}
+		body {
+			background-color: white;
+			height: 3000px;
+		}
+		.upgradeTable {
+			margin-left: auto;
+			margin-right: auto;
+			text-align: center;
+			border-collapse: collapse;
+		}
+		.upgradeTable td {
+			padding: 0px;
+		}
+		.pointsUpgradeButton {
+			text-align: center;
+			width: 400px;
+			height: 100px;
+			border: 5px solid black;
+			background-color: white;
+		}
+		.pointsUpgradeButton:hover {
+			background-color: black;
+			color: white;
+		}
+		.redText {
+			color: red;
+		}
+		.greenText {
+			color: green;
+		}
+		#xpCount {
+			color: blue;
+		}
+		#prestigePointCount {
+			color: navy;
+		}
+		#PPonReset {
+			color: navy;
+		}
+		.prestigeUpgradeButton {
+			text-align: center;
+			width: 400px;
+			height: 100px;
+			border: 5px solid navy;
+			background-color: white;
+		}
+		.prestigeUpgradeButton:hover {
+			background-color: navy;
+			color: white;
+		}
+		.goldUpgradeButton {
+			text-align: center;
+			width: 400px;
+			height: 100px;
+			border: 5px solid gold;
+			background-color: black;
+			color: white;
+		}
+		.goldUpgradeButton:hover {
+			background-color: gold;
+			color: black;
+		}
+		#goldCount {
+			color: gold;
+		}
+	</style>
+</head>
+<body onload="loadGame()" onkeypress="move(event)">
+	<div style="text-align:center"><canvas width="800" height="600" id="canvas"></canvas></div>
+	<hr class="seperator"> <!--stuff to do with points-->
+	<div style="text-align: center; font-size: 40px;">You have <span id="pointCount">0</span> points</div>
+	<div style="text-align: center; font-size: 40px;" id="levelDisplay">Level: <span id="levelCount">0</span> [XP: <span id="xpCount">0/5</span>]</div>
+	<br>
+	<table class="upgradeTable">
+		<!-- template
+			<td>
+				<button class="pointsUpgradeButton" id="[]Button" onclick="buyUpgrade('[]')">
+					Width I <span id="[]Cap">[0/0]</span> <br>
+					Increases board width by 1. <span id="[]New">(4 -> 5)</span> <br>
+					<span id="[]CostDisplay">Cost: <span id="[]Cost">1000</span> points.</span>
+				</button>
+			</td>
+		-->
+		<tr>
+			<td>
+				<button class="pointsUpgradeButton" id="WidthIButton" onclick="buyUpgrade('WidthI')">
+					Width I <span id="WidthICap">[0/4]</span> <br>
+					Increases board width by 1. <span id="WidthINew">(4 -> 5)</span> <br>
+					<span id="WidthICostDisplay">Cost: <span id="WidthICost">1000</span> points</span>
+				</button>
+			</td>
+			<td>
+				<button class="pointsUpgradeButton" id="HeightIButton" onclick="buyUpgrade('HeightI')">
+					Height I <span id="HeightICap">[0/3]</span> <br>
+					Increases board height by 1. <span id="HeightINew">(3 -> 4)</span> <br>
+					<span id="HeightICostDisplay">Cost: <span id="HeightICost">100</span> points</span>
+				</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<button class="pointsUpgradeButton" id="SpawnRateIButton" onclick="buyUpgrade('SpawnRateI')">
+					Spawnrate I <span id="SpawnRateICap">[0/20]</span> <br>
+					Increases spawn rate by 5% (additive). <br>
+					<span id="SpawnRateINew">(1 -> 1.05)</span> <br>
+					<span id="SpawnRateICostDisplay">Cost: <span id="SpawnRateICost">20</span> points</span>
+				</button>
+			</td>
+			<td>
+				<button class="pointsUpgradeButton" id="MergeGainIButton" onclick="buyUpgrade('MergeGainI')">
+					Merge Gain I <span id="MergeGainICap">[0/50]</span> <br>
+					Increases points gained from merging by 1.5x. <br>
+					<span id="MergeGainINew">(1 -> 1.5)</span> <br>
+					<span id="MergeGainICostDisplay">Cost: <span id="MergeGainICost">1000</span> points</span>
+				</button>
+			</td>
+		</tr>
+	</table>
+	
+	<!--prestige points-->
+	<div id="prestigeArea">
+		<hr class="seperator">
+		<div style="text-align: center; font-size: 40px;">
+			You have <span id="prestigePointCount">0</span> prestige points
+		</div> <br>
+		<div style="text-align: center; font-size: 40px;">
+			<button class="pointsUpgradeButton" onclick="prestige()">
+				Prestige for <span id="PPonReset">0</span> prestige points <br>
+				<span id="prestigeButtonInfo">
+					4x PP gain for every 16 highest tier <br>
+					You need at least <span id="PPReq">1e5</span> points to prestige <br>
+				</span>
+			</button>
+		</div>
+		<br>
+		<table class="upgradeTable">
+			<!-- template
+				<td>
+					<button class="prestigeUpgradeButton" id="[]Button" onclick="buyUpgrade('[]')">
+						Width I <span id="[]Cap">[0/0]</span> <br>
+						Increases board width by 1. <br>
+						<span id="[]New">(4 -> 5)</span> <br>
+						<span id="[]CostDisplay">Cost: <span id="[]Cost">1000</span> PP</span>
+					</button>
+				</td>
+			-->
+			<tr>
+				<td>
+					<button class="prestigeUpgradeButton" id="MergeGainIIButton" onclick="buyUpgrade('MergeGainII')">
+						Merge Gain II <span id="MergeGainIICap">[0/0]</span> <br>
+						Further increases points gained on merge. <br>
+						<span id="MergeGainIINew">(4 -> 5)</span> <br>
+						<span id="MergeGainIICostDisplay">Cost: <span id="MergeGainIICost">1000</span> PP</span>
+					</button>
+				</td>
+				<td>
+					<button class="prestigeUpgradeButton" id="SpawnRateIIButton" onclick="buyUpgrade('SpawnRateII')">
+						Spawn Rate II <span id="SpawnRateIICap">[0/0]</span> <br>
+						Increases spawn rate by 10% (additive) <br>
+						<span id="SpawnRateIINew">(4 -> 5)</span> <br>
+						<span id="SpawnRateIICostDisplay">Cost: <span id="SpawnRateIICost">1000</span> PP</span>
+					</button>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button class="prestigeUpgradeButton" id="WidthIIButton" onclick="buyUpgrade('WidthII')">
+						Width II <span id="WidthIICap">[0/0]</span> <br>
+						Increases board width by 1. <br>
+						<span id="WidthIINew">(4 -> 5)</span> <br>
+						<span id="WidthIICostDisplay">Cost: <span id="WidthIICost">1000</span> PP</span>
+					</button>
+				</td>
+				<td>
+					<button class="prestigeUpgradeButton" id="HeightIIButton" onclick="buyUpgrade('HeightII')">
+						Height II <span id="HeightIICap">[0/0]</span> <br>
+						Increases board height by 1. <br>
+						<span id="HeightIINew">(4 -> 5)</span> <br>
+						<span id="HeightIICostDisplay">Cost: <span id="HeightIICost">1000</span> PP</span>
+					</button>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button class="prestigeUpgradeButton" id="MergeGoldIButton" onclick="buyUpgrade('MergeGoldI')">
+						Merge Gold I <span id="MergeGoldICap">[0/0]</span> <br>
+						Merging has a chance to give 1 gold. <br>
+						<span id="MergeGoldINew">(4 -> 5)</span> <br>
+						<span id="MergeGoldICostDisplay">Cost: <span id="MergeGoldICost">1000</span> PP</span>
+					</button>
+				</td>
+				<td>
+					<button class="prestigeUpgradeButton" id="SpawnTierIButton" onclick="buyUpgrade('SpawnTierI')">
+						Spawn Tier I <span id="SpawnTierICap">[0/0]</span> <br>
+						Increases spawn tier by 1. <br>
+						<span id="SpawnTierINew">(4 -> 5)</span> <br>
+						<span id="SpawnTierICostDisplay">Cost: <span id="SpawnTierICost">1000</span> PP</span>
+					</button>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<!--gold-->
+	<div id="goldArea">
+		<hr class="seperator">
+		<div style="text-align: center; font-size: 40px;">
+			You have <span id="goldCount">0</span> gold
+		</div> <br>
+		<table class="upgradeTable">
+			<!-- template
+				<td>
+					<button class="goldUpgradeButton" id="[]Button" onclick="buyUpgrade('[]')">
+						Width I <span id="[]Cap">[0/0]</span> <br>
+						Increases board width by 1. <span id="[]New">(4 -> 5)</span> <br>
+						<span id="[]CostDisplay">Cost: <span id="[]Cost">1000</span> gold</span>
+					</button>
+				</td>
+			-->
+			<tr>
+				<td>
+					<button class="goldUpgradeButton" id="LevelTierIButton" onclick="buyUpgrade('LevelTierI')">
+						Level Tier I <span id="LevelTierICap">[0/0]</span> <br>
+						Increases tier increase per level. <br>
+						<span id="LevelTierINew">(+0.000 -> +0.005)</span> <br>
+						<span id="LevelTierICostDisplay">Cost: <span id="LevelTierICost">1000</span> gold</span>
+					</button>
+				</td>
+				<td>
+					<button class="goldUpgradeButton" id="XPTierIButton" onclick="buyUpgrade('XPTierI')">
+						XP Tier I <span id="XPTierICap">[0/0]</span> <br>
+						Merging higher tiers gives more XP. <br>
+						<span id="XPTierINew">(0.00 -> 0.01)</span> <br>
+						<span id="XPTierICostDisplay">Cost: <span id="XPTierICost">1000</span> gold</span>
+					</button>
+				</td>
+				<td>
+					<button class="goldUpgradeButton" id="SpawnRateIIIButton" onclick="buyUpgrade('SpawnRateIII')">
+						Spawn Rate III <span id="SpawnRateIIICap">[0/0]</span> <br>
+						Increases spawn rate by 5% (additive). <br>
+						<span id="SpawnRateIIINew">(1 -> 1.05)</span> <br>
+						<span id="SpawnRateIIICostDisplay">Cost: <span id="SpawnRateIIICost">1000</span> gold</span>
+					</button>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button class="goldUpgradeButton" id="PPTierMultiplierIButton" onclick="buyUpgrade('PPTierMultiplierI')">
+						PP Multiplier I <span id="PPTierMultiplierICap">[0/0]</span> <br>
+						Increases PP increase every 16 tiers by 0.1x. <br>
+						<span id="PPTierMultiplierINew">(+0x -> +0.1x)</span> <br>
+						<span id="PPTierMultiplierICostDisplay">Cost: <span id="PPTierMultiplierICost">1000</span> gold</span>
+					</button>
+				</td>
+				<td>
+					<button class="goldUpgradeButton" id="PPTierFrequencyIButton" onclick="buyUpgrade('PPTierFrequencyI')">
+						PP Frequency I <span id="PPTierFrequencyICap">[0/0]</span> <br>
+						PP increases are more frequent by 0.5 tiers. <br>
+						<span id="PPTierFrequencyINew">(-0 -> -0.5)</span> <br>
+						<span id="PPTierFrequencyICostDisplay">Cost: <span id="PPTierFrequencyICost">1000</span> gold</span>
+					</button>
+				</td>
+				<td>
+					<button class="goldUpgradeButton" id="HigherMergeTierIButton" onclick="buyUpgrade('HigherMergeTierI')">
+						Higher Merge Tier I <span id="HigherMergeTierICap">[0/0]</span> <br>
+						Merging has a chance to give 1 tier higher. <br>
+						<span id="HigherMergeTierINew">(0% -> 1%)</span> <br>
+						<span id="HigherMergeTierICostDisplay">Cost: <span id="HigherMergeTierICost">1000</span> gold</span>
+					</button>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button class="goldUpgradeButton" id="MergeGoldIIButton" onclick="buyUpgrade('MergeGoldII')">
+						Merge Gold II <span id="MergeGoldIICap">[0/0]</span> <br>
+						Merge Gold I now gives more 0.2 gold per level. <br>
+						<span id="MergeGoldIINew">(+0.0 -> +0.2)</span> <br>
+						<span id="MergeGoldIICostDisplay">Cost: <span id="MergeGoldIICost">1000</span> gold</span>
+					</button>
+				</td>
+				<td>
+					<button class="goldUpgradeButton" id="MergePointsPassiveIButton" onclick="buyUpgrade('MergePointsPassiveI')">
+						Merge Passive Points I <span id="MergePointsPassiveICap">[0/0]</span> <br>
+						Merging has a chance to give 5% of points gained to points per second. <br>
+						<span id="MergePointsPassiveINew">(0% -> 0.5%)</span> <br>
+						<span id="MergePointsPassiveICostDisplay">Cost: <span id="MergePointsPassiveICost">1000</span> gold</span>
+					</button>
+				</td>
+				<td>
+					<button class="goldUpgradeButton" id="PointsTierBaseIButton" onclick="buyUpgrade('PointsTierBaseI')">
+						Points Tier Base I <span id="PointsTierBaseICap">[0/0]</span> <br>
+						Increases the points increase between tiers by 0.1 <br>
+						<span id="PointsTierBaseINew">(0 -> 0.1)</span> <br>
+						<span id="PointsTierBaseICostDisplay">Cost: <span id="PointsTierBaseICost">1000</span> gold</span>
+					</button>
+				</td>
+			</tr>
+		</table>
+	</div>
+	
+	<div id="settingsArea">
+		<hr class="seperator">
+		<div style="text-align: center; font-size: 60px;">Settings</div> <br> <br> <br>
+		<table class="upgradeTable">
+			<tr>
+				<td>
+					<button class="pointsUpgradeButton" id="settingsNotation" onclick="changeSettings('notation')">
+						Notation: Scientific
+					</button>
+				</td>
+				<td>
+					<button class="pointsUpgradeButton" id="settingsShowTier" onclick="changeSettings('showTier')">
+						Show Tier: Enabled
+					</button>
+				</td>
+			</tr>
+		</table> <br> <br>
+		<div style="text-align: center; color: gray; font-size: 18px;">
+			Extra Info: <br>
+			WASD to move <br>
+			Hold Shift to upgrade max <br>
+			New features unlock at: Merger tier 8, Merger tier 11 and 1 gold (this will prob be moved somewhere)
+		</div>
+	</div>
+</body>
+<script src="ExpantaNum.js"></script>
+<script src="functions.js"></script>
+<script>
+var canvas = GEID("canvas"), ctx = canvas.getContext("2d")
+var sprites = {
+	"bg": new Image(),
+	"player": new Image(),
+}
+sprites.bg.src = "bg.png"
+sprites.player.src = "player.png"
+var spawnTable = {
+	"1": 1,
+}
+var tileColors = [
+    "#aaaaaa",
+    "#00aa00",
+    "#054bef",
+    "#9c28ff",
+    "#fab412",
+    "#d92c49",
+    "#328679",
+    "#59703b",
+    "#d1b9a3",
+    "#b08512",
+    "#717a94",
+    "#7ecec3",
+    "#36c3de",
+    "#4af768",
+    "#ca3625",
+    "#3c78fb",
+    "#d0b16e",
+    "#a92aea",
+    "#bbbcaf",
+    "#b2ed1d",
+    "#7b8341",
+    "#f991cb",
+    "#3f9907",
+    "#a0f254",
+    "#3f736b",
+    "#37a2c1",
+    "#b2b26d",
+    "#10a271",
+    "#39b90b",
+    "#cfaef1",
+    "#d2a876",
+    "#f3d2a3",
+    "#8cac09",
+    "#7b2134",
+    "#339baf",
+    "#751876",
+    "#d8227f",
+    "#103fa7",
+    "#a88a26",
+    "#418849",
+    "#bad174",
+    "#bdf8a0",
+    "#46d1e8",
+    "#617df5",
+    "#be8b91",
+    "#97f952",
+    "#431134",
+    "#dee298",
+    "#279005",
+    "#e9f526",
+    "#659057",
+    "#890ebe",
+    "#bc931e",
+    "#ff4b03",
+    "#e1be9d",
+    "#45a6be",
+    "#1c4cd3",
+    "#ae111b",
+    "#a1e8ac",
+    "#f71485",
+    "#c59a3f",
+    "#1b7544",
+    "#34cda7",
+    "#b78381"
+] 
+var toSpawn = 0
+//64 base colors
+
+var player = {
+
+	//board related info
+	map: JSON.parse(JSON.stringify(Array(20).fill(Array(15).fill(0)))),
+	x: 0,
+	y: 0,
+	width: 4,
+	height: 3,
+	spawnRate: 1,
+	mean: 0,
+
+	//upgrades
+	upgradeLevels: {
+
+		//point upgrades
+		WidthI: 0,
+		HeightI: 0,
+		SpawnRateI: 0,
+		MergeGainI: 0,
+
+		//PP upgrades
+		MergeGainII: 0,
+		SpawnRateII: 0,
+		WidthII: 0,
+		HeightII: 0,
+		MergeGoldI: 0,
+		SpawnTierI: 0,
+
+		//gold upgrades
+		LevelTierI: 0, //+0.005/level, 80 levels
+		XPTierI: 0, //+0.01/tier/level, 50 levels
+		SpawnRateIII: 0, //+0.05x/level, 200 levels
+		PPTierMultiplierI: 0, //+0.1/level, 160 levels
+		PPTierFrequencyI: 0, //-0.5/level, 8 levels
+		HigherMergeTierI: 0, //+1%/level, 90 levels
+		MergeGoldII: 0, // +0.2 gold/level, 95 levels
+		MergePointsPassiveI: 0, //+0.5% chance / level, 200 levels
+		PointsTierBaseI: 0, //+0.1 base / level, 10 levels
+
+
+	},
+
+	upgradeCaps: {
+		//-1: no cap
+
+		//points
+		WidthI: 4,
+		HeightI: 3,
+		SpawnRateI: 20,
+		MergeGainI: 50,
+
+		//PP
+		MergeGainII: 50,
+		SpawnRateII: 15,
+		WidthII: 4,
+		HeightII: 3,
+		MergeGoldI: 20,
+		SpawnTierI: 50,
+
+		//gold
+		LevelTierI: 80, //+0.005/level, 80 levels
+		XPTierI: 50, //+0.01/tier/level, 50 levels
+		SpawnRateIII: 200, //+0.05x/level, 200 levels
+		PPTierMultiplierI: 160, //+0.1/level, 160 levels
+		PPTierFrequencyI: 8, //-0.5/level, 8 levels
+		HigherMergeTierI: 90, //+1%/level, 90 levels
+		MergeGoldII: 95, // +0.2 gold/level, 95 levels
+		MergePointsPassiveI: 200, //+0.5% chance / level, 200 levels
+		PointsTierBaseI: 10, //+0.1 base / level, 10 levels
+	},
+
+	//pre-prestige
+	points: N(0),
+	highestTile: 1,
+	highestTileThisPrestige: 1,
+	xp: 0,
+	level: 1,
+
+	//post-prestige
+	prestigePoints: N(0),
+	prestiges: 0,
+	gold: N(0),
+	PPS: N(0),
+
+	//unlocks
+	xpUnlocked: false,
+	prestigeUnlocked: false,
+	goldUnlocked: false,
+
+	//settings
+	settings: {
+		notation: 0,
+		showTier: 1,
+	},
+}
+function buyUpgrade(id, buyMax = false) {
+	var upgradeCost = getUpgradeCost(id), bought = false
+	switch (id) {
+
+		case "template":
+			if (player.upgradeLevels[id] >= 123) return;
+			if (gte(player[123], upgradeCost)) {
+				player.upgradeLevels[id]++
+				player[123] = sub(player[123], upgradeCost)
+				bought = true
+			}
+		break;
+
+		//points upgrades
+		case "WidthI":
+		case "HeightI":
+		case "SpawnRateI":
+		case "MergeGainI":
+			if (player.upgradeLevels[id] >= player.upgradeCaps[id]) return;
+			if (gte(player.points, upgradeCost)) {
+				player.upgradeLevels[id]++
+				player.points = sub(player.points, upgradeCost)
+				bought = true
+			}
+		break;
+		
+		//pp upgs
+		case "MergeGainII":
+		case "SpawnRateII":
+		case "WidthII":
+		case "HeightII":
+		case "MergeGoldI":
+		case "SpawnTierI":
+			if (player.upgradeLevels[id] >= player.upgradeCaps[id]) return;
+			if (gte(player.prestigePoints, upgradeCost)) {
+				player.upgradeLevels[id]++
+				player.prestigePoints = sub(player.prestigePoints, upgradeCost)
+				bought = true
+			}
+		break;
+
+		//gold upgs
+		case "LevelTierI":
+		case "XPTierI":
+		case "SpawnRateIII": 
+		case "PPTierMultiplierI":
+		case "PPTierFrequencyI": 
+		case "HigherMergeTierI": 
+		case "MergeGoldII": 
+		case "MergePointsPassiveI": 
+		case "PointsTierBaseI": 
+			if (player.upgradeLevels[id] >= player.upgradeCaps[id]) return;
+			if (gte(player.gold, upgradeCost)) {
+				player.upgradeLevels[id]++
+				player.gold = sub(player.gold, upgradeCost)
+				bought = true
+			}
+		break;
+		
+	}
+	if ((keyPressed.shift || buyMax) && bought) buyUpgrade(id, buyMax)
+}
+function changeSettings(s) {
+	switch (s) {
+		case "notation":
+			player.settings[s] = (player.settings[s]+1)%2
+		break;
+		case "showTier":
+			player.settings[s] = (player.settings[s]+1)%2
+		break;
+	}
+}
+function generate() {
+	//generate points
+	player.points = add(player.points, mul(player.PPS, 0.05))
+
+	//update min tiles
+	var minTier = Math.floor(player.mean)
+	for (let x in player.map) {
+		for (let y in player.map[x]) {
+
+			//if tile tier too low
+			if (player.map[x][y]) player.map[x][y] = Math.max(player.map[x][y],minTier)
+
+			//max tile
+			player.highestTile = Math.max(player.highestTile,player.map[x][y])
+			player.highestTileThisPrestige = Math.max(player.highestTileThisPrestige, player.map[x][y])
+
+		}
+	}
+}
+function getEXPReq() {
+	return (player.level+1)*player.level/2
+}
+function getTileFormVal(tier) {
+	var base = add(2, getUpgradeEffect("PointsTierBaseI"))
+	return mul(pow(base,tier-1), getUpgradeEffect("MergeGainI"), getUpgradeEffect("MergeGainII"))
+}
+function getPPonReset() {
+	//prestige points btw
+
+	//base
+	var gain = mul(20,player.points.log10()) // log(points)*20
+	if (lt(gain,100)) return 0; //you need at least 1e5 points to prestige
+	
+	//4x for every 16 tier
+	var base = add(4, getUpgradeEffect("PPTierMultiplierI"))
+	var freq = 16 - getUpgradeEffect("PPTierFrequencyI")
+	gain = mul(gain, pow(base, Math.floor(player.highestTileThisPrestige/freq)))
+
+	
+	return floor(gain)
+}
+function getUpgradeCost(id) {
+	var L = player.upgradeLevels[id]
+	switch (id) {
+
+		//points upg
+		case "WidthI": return mul(1000,pow(10,L)); //1000*10^L
+		case "HeightI": return mul(100,pow(10,L)); //190*10^L
+		case "SpawnRateI": return mul(20,pow(2,L)); //20*2^L
+		case "MergeGainI": return mul(100,pow(2.5,L)) //100*2.5^L
+
+		//PP upgs
+		case "MergeGainII":
+			var i = L, cost = N(10*L+10) //base: 10(L+1)
+			while (i--) {
+				cost = mul(cost,1.5+i/2)
+			}
+			return cost; //base*1.2*1.4*...
+		case "SpawnRateII": return mul(5,pow(1.2,L)) //5*1.2^L
+		case "WidthII": return mul(32, pow(2,L)) // 32*2^L
+		case "HeightII": return mul(8, pow(2,L)) // 8*2^L
+		case "MergeGoldI": return mul(5, L+1, L+1) //5*(L+1)^2
+		case "SpawnTierI": return mul(10,pow((4+Math.floor(L/10))/2, L)) //10*2^L, base increases by 0.5 every 10 levels
+	
+		//gold upgrades
+		case "LevelTierI": return mul(10,pow(L+1,2)) //10*(L+1)^2
+		case 'XPTierI': return mul(20,pow(1.2,L)) //20*1.2^L
+		case "SpawnRateIII": return N(L+1) //L+1
+		case "PPTierMultiplierI": return mul(100,pow(1.1,L)) //100*1.1^L
+		case "PPTierFrequencyI": return mul(5e2,pow(1.5,L)) //500*1.5^L
+		case "HigherMergeTierI": return add(20,mul(10,L)) //20+10*L
+		case "MergeGoldII": return add(100, mul(L, L+1, 5)) //100 + L(L+1)*5
+		case "MergePointsPassiveI": return N(50) //50
+		case "PointsTierBaseI": return mul(100,pow(L+2,L)) //100*(L+2)^L
+
+	}
+}
+function getUpgradeEffect(id,next = 0) {
+	var L = player.upgradeLevels[id]+next
+	switch (id) {
+
+		//points upgs
+		case "WidthI": return L;
+		case "HeightI": return L;
+		case "SpawnRateI": return 1+L/20;
+		case "MergeGainI": return pow(1.5,L);
+
+		//pp upgs
+		case "MergeGainII": return N(L+1).factorial();
+		case "SpawnRateII": return 1+L/10;
+		case "WidthII": return L;
+		case "HeightII": return L;
+		case "MergeGoldI": return L/20;
+		case "SpawnTierI": return L;
+		
+		//gold upgrades
+		case "LevelTierI": return L/200;
+		case "XPTierI": return L/100;
+		case "SpawnRateIII": return 1+L/20;
+		case "PPTierMultiplierI": return L/10;
+		case "PPTierFrequencyI": return L/2;
+		case "HigherMergeTierI": return L/100;
+		case "MergeGoldII": return L/5;
+		case "MergePointsPassiveI": return L/200;
+		case "PointsTierBaseI": return L/10;
+	}
+}
+function loadGame() {
+
+	//set up the save
+	var save = localStorage.mergerSave
+	if (save == undefined) save = {}
+	else save = JSON.parse(save)
+	player = copyObj(player, save)
+
+
+	setInterval(update,50)
+	setInterval(mergeCheckAll, 500)
+	setInterval(saveGame, 1000)
+}
+function mergeCheckAll() {
+	test = 0
+	for (let x in player.map) {
+		for (let y in player.map[x]) {
+			if (!player.map[x][y]) continue; //ignore empty tiles
+			mergeCheckSingle(x*1,y*1)
+			
+		}
+	}
+}
+function mergeCheckSingle(x,y) {
+	if (player.map[x][y] == 0) return;
+	var times = 4 //check 4 times
+	while (times--) {
+		var t = player.map[x][y], nx, ny //get position and type
+			
+		//each direction
+		var D = [[1,0],[0,1],[-1,0],[0,-1]]
+		for (let z in D) {
+			nx = (x+20+D[z][0])%20, ny = (y+15+D[z][1])%15
+
+			//a match was found
+			if (player.map[nx][ny] == t) {
+
+				//update the map
+				player.map[nx][ny] = 0
+				player.map[x][y]++
+				t++
+
+				//extra tier
+				if (regularChanceRandom(getUpgradeEffect("HigherMergeTierI"))) {
+					player.map[x][y]++
+					t++
+				}
+
+				//update points and highest tile
+				var formVal = getTileFormVal(t)
+				player.points = add(player.points,formVal)
+
+				//update xp
+				if (player.xpUnlocked) {
+					var xpGain = 1 + t*getUpgradeEffect("XPTierI")
+					player.xp += xpGain
+					while (player.xp >= getEXPReq()) {
+						player.xp -= getEXPReq()
+						player.level++
+					}
+				}
+
+				//gold
+				if (regularChanceRandom(getUpgradeEffect("MergeGoldI"))) {
+					var goldGain = add(1, getUpgradeEffect("MergeGoldII"))
+					player.gold = add(player.gold, goldGain)
+				}
+
+				//passive points
+				if (regularChanceRandom(getUpgradeEffect("MergePointsPassiveI"))) {
+					player.PPS = add(player.PPS,mul(formVal,0.05))
+				}
+			}
+		}
+	}
+}
+function move(e,o = -1) {
+
+	var w = player.width, h = player.height
+
+	//get direction
+	if (e != undefined) buttonPresseed = e.key.toLowerCase(), d = [0,0]
+	if (o >= 0) buttonPresseed = ["w","a","s","d"][o]
+	switch (buttonPresseed) {
+		case "w": d = [0, -1]; break;
+		case "a": d = [-1, 0]; break;
+		case "s": d = [0 , 1]; break;
+		case "d": d = [1 , 0]; break;
+	}
+	
+
+	//find what gets pushed
+	var checkPos = [player.x,player.y], j = 0, line = []
+	while (j++ < 100) {
+		checkPos[0] = (checkPos[0]+d[0]+w)%w
+		checkPos[1] = (checkPos[1]+d[1]+h)%h
+		
+		if (player.map[checkPos[0]][checkPos[1]]) line.push(player.map[checkPos[0]][checkPos[1]])
+		else break
+	}
+
+	//push everything back
+	checkPos = [(player.x+d[0]+w)%w,(player.y+d[1]+h)%h]
+	player.x = checkPos[0]
+	player.y = checkPos[1]
+	player.map[checkPos[0]][checkPos[1]] = 0 //delete
+	for (let x in line) {
+		checkPos[0] = (checkPos[0]+d[0]+w)%w
+		checkPos[1] = (checkPos[1]+d[1]+h)%h
+		player.map[checkPos[0]][checkPos[1]] = line[x]
+	}
+
+	//merge check
+	checkPos = [player.x,player.y]
+	for (let x in line) {
+		checkPos[0] = (checkPos[0]+d[0]+w)%w
+		checkPos[1] = (checkPos[1]+d[1]+h)%h
+		mergeCheckSingle(checkPos[0],checkPos[1])
+	}
+
+	
+	render()
+}
+function prestige(ignore = false) {
+	var gain = getPPonReset()
+	if (lt(gain, 100) && !ignore) return;
+
+	//reset stats
+	player.points = N(0)
+	player.xp = 0
+	player.level = 1
+	player.highestTileThisPrestige = 1
+	player.PPS = N(0)
+
+	//reset upgrades
+	player.upgradeLevels.WidthI = 0
+	player.upgradeLevels.HeightI = 0
+	player.upgradeLevels.SpawnRateI = 0
+	player.upgradeLevels.MergeGainI = 0
+
+	//clear map
+	for (let x in player.map) {
+		for (let y in player.map) {
+			player.map[x][y] = 0
+		}
+	}
+	player.x = 0
+	player.y = 0
+
+	//gain pp and prestige count
+	player.prestigePoints = add(player.prestigePoints, gain)
+	player.prestiges++
+}
+function render() {
+
+	//canvas update
+	ctx.font = "14px Jetbrains Mono"
+	ctx.textAlign = "center"
+	ctx.textBaseline = "middle"
+	ctx.drawImage(sprites.bg,0,0)
+	for (let x in player.map) {
+		for (let y in player.map[x]) {
+			if (player.map[x][y]) {
+				var colors = [0,0,0], v = player.map[x][y]-1, i = -1
+				while (++i < 3) {
+					colors[i] = v%64
+					v = (v-(v%64))/64
+				}
+
+				//tier 1 bg
+				ctx.fillStyle = tileColors[colors[0]]
+				ctx.fillRect(x*40,y*40,40,40)
+
+				//tier 3 color
+				if (colors[2] > 0) {
+					ctx.fillStyle = tileColors[colors[2]]
+					ctx.fillRect(x*40,y*40,40,40)
+				}
+
+				//tier 2 color
+				if (colors[1] > 0 || colors[2] > 0) {
+					ctx.fillStyle = tileColors[colors[1]]
+					ctx.fillRect(x*40,y*40,10,10)
+					ctx.fillRect(x*40+30,y*40,10,10)
+					ctx.fillRect(x*40,y*40+30,10,10)
+					ctx.fillRect(x*40+30,y*40+30,10,10)
+				}
+
+				//tier 1 color
+				ctx.fillStyle = tileColors[colors[0]]
+				ctx.fillRect(x*40+5,y*40+5,30,30)
+				if (player.settings.showTier) {
+					ctx.fillStyle = "#000"
+					ctx.fillText(player.map[x][y],x*40+20,y*40+20)
+				}
+			}
+		}
+	}
+	ctx.drawImage(sprites.player,player.x*40,player.y*40)
+
+	//html update
+
+	//settings
+	GEID("settingsNotation").textContent = "Notation: " + ["Scientific","Alphabet"][player.settings.notation]
+	GEID("settingsShowTier").textContent = "Show Tier: " + ["Disabled","Enabled"][player.settings.showTier]
+
+	//points section
+	GEID("pointCount").textContent = fix(player.points)
+	GEID("levelDisplay").hidden = !player.xpUnlocked
+	GEID("levelCount").textContent = player.level
+	GEID("xpCount").textContent = fix(player.xp) + "/" + fix(getEXPReq())
+
+	//points upgrade text
+	var pointUpgrades = [
+		"WidthI", //[name, cap]
+		"HeightI",
+		"SpawnRateI",
+		"MergeGainI",
+	]
+	for (let x of pointUpgrades) {
+		var upgCost = getUpgradeCost(x)
+		GEID(x + "Cost").textContent = fix(upgCost)
+		GEID(x + "Cost").className = (gte(player.points,upgCost)) ? "greenText" : "redText"
+		GEID(x + "CostDisplay").hidden = (player.upgradeLevels[x] >= player.upgradeCaps[x])
+		GEID(x + "Cap").textContent = "[" + player.upgradeLevels[x] + "/" + player.upgradeCaps[x] + "]"
+	}
+	
+	GEID("WidthINew").textContent = (player.upgradeLevels.WidthI < player.upgradeCaps.WidthI) ? "(" + player.width + " -> " + (player.width+1) + ")" : "[" + player.width + "]"
+	GEID("HeightINew").textContent = (player.upgradeLevels.HeightI < player.upgradeCaps.HeightI) ? "(" + player.height + " -> " + (player.height+1) + ")" : "[" + player.height + "]"
+	GEID("SpawnRateINew").textContent = (player.upgradeLevels.SpawnRateI < player.upgradeCaps.SpawnRateI) ? "(" + getUpgradeEffect("SpawnRateI") + " -> " + getUpgradeEffect("SpawnRateI",1) + ")" : "[" + getUpgradeEffect("SpawnRateI") + "]"
+	GEID("MergeGainINew").textContent = (player.upgradeLevels.MergeGainI < player.upgradeCaps.MergeGainI) ? "(" + fix(getUpgradeEffect("MergeGainI")) + " -> " + fix(getUpgradeEffect("MergeGainI",1)) + ")" : "[" + fix(getUpgradeEffect("MergeGainI")) + "]"
+
+	//prestige
+	GEID("prestigeArea").hidden = !player.prestigeUnlocked
+	GEID("prestigePointCount").textContent = fix(player.prestigePoints)
+
+	//prestige button
+	GEID("PPonReset").textContent = fix(getPPonReset())
+	GEID("prestigeButtonInfo").hidden = (player.prestiges >= 3)
+	GEID("PPReq").textContent = fix(1e5)
+
+	//PP upgrade text
+	var PPUpgrades = [
+		"MergeGainII",
+		"SpawnRateII",
+		"WidthII",
+		"HeightII",
+		"MergeGoldI",
+		"SpawnTierI",
+	]
+	for (let x of PPUpgrades) {
+		var upgCost = getUpgradeCost(x)
+		GEID(x + "Cost").textContent = fix(upgCost)
+		GEID(x + "Cost").className = (gte(player.prestigePoints, upgCost)) ? "greenText" : "redText"
+		GEID(x + "CostDisplay").hidden = (player.upgradeLevels[x] >= player.upgradeCaps[x])
+		GEID(x + "Cap").textContent = "[" + player.upgradeLevels[x] + "/" + player.upgradeCaps[x] + "]"
+	}
+
+	GEID("MergeGainIINew").textContent = (player.upgradeLevels.MergeGainII < player.upgradeCaps.MergeGainII) ? "(" + fix(getUpgradeEffect("MergeGainII")) + " -> " + fix(getUpgradeEffect("MergeGainII",1)) + ")" : "[" + fix(getUpgradeEffect("MergeGainII")) + "]"
+	GEID("SpawnRateIINew").textContent = (player.upgradeLevels.SpawnRateII < player.upgradeCaps.SpawnRateII) ? "(" + getUpgradeEffect("SpawnRateII") + " -> " + getUpgradeEffect("SpawnRateII",1) + ")" : "[2.5]"
+	GEID("WidthIINew").textContent = (player.upgradeLevels.WidthII < player.upgradeCaps.WidthII) ? "(" + player.width + " -> " + (player.width+1) + ")" : "[" + player.width + "]"
+	GEID("HeightIINew").textContent = (player.upgradeLevels.HeightII < player.upgradeCaps.HeightII) ? "(" + player.height + " -> " + (player.height+1) + ")" : "[" + player.height + "]"
+	GEID("MergeGoldINew").textContent = (player.upgradeLevels.MergeGoldI < player.upgradeCaps.MergeGoldI) ? "(" + fix(getUpgradeEffect("MergeGoldI")*100) + "% -> " + fix(getUpgradeEffect("MergeGoldI",1)*100) + "%)" : "[100%]"
+	GEID("SpawnTierINew").textContent = (player.upgradeLevels.SpawnTierI < player.upgradeCaps.SpawnTierI) ? "(" + player.upgradeLevels.SpawnTierI + " -> " + (player.upgradeLevels.SpawnTierI+1) + ")" : "[50]"
+
+	//gold area
+	GEID("goldArea").hidden = !player.goldUnlocked
+	GEID("goldCount").textContent = fix(player.gold)
+
+	//gold upgrades
+	var GoldUpgrades = [
+		"LevelTierI",
+		"XPTierI",
+		"SpawnRateIII",
+		"PPTierMultiplierI",
+		"PPTierFrequencyI",
+		"HigherMergeTierI",
+		"MergeGoldII",
+		"MergePointsPassiveI",
+		"PointsTierBaseI",
+	]
+	for (let x of GoldUpgrades) {
+		var upgCost = getUpgradeCost(x)
+		GEID(x + "Cost").textContent = fix(upgCost)
+		GEID(x + "Cost").className = (gte(player.gold, upgCost)) ? "greenText" : "redText"
+		GEID(x + "CostDisplay").hidden = (player.upgradeLevels[x] >= player.upgradeCaps[x])
+		GEID(x + "Cap").textContent = "[" + player.upgradeLevels[x] + "/" + player.upgradeCaps[x] + "]"
+	}
+	GEID("LevelTierINew").textContent = (player.upgradeLevels.LevelTierI < player.upgradeCaps.LevelTierI) ? "(+" + getUpgradeEffect("LevelTierI").toFixed(3) + " -> +" + getUpgradeEffect("LevelTierI",1).toFixed(3) + ")" : "[+0.400]"
+	GEID("XPTierINew").textContent = (player.upgradeLevels.XPTierI < player.upgradeCaps.XPTierI) ? "(" + getUpgradeEffect("XPTierI").toFixed(2) + "/t -> " + getUpgradeEffect("XPTierI",1).toFixed(2) + "/t)" : "[0.50/t]"
+	GEID("SpawnRateIIINew").textContent = (player.upgradeLevels.SpawnRateIII < player.upgradeCaps.SpawnRateIII) ? "(" + getUpgradeEffect("SpawnRateIII").toFixed(2) + " -> " + getUpgradeEffect("SpawnRateIII",1).toFixed(2) + ")" : "[11.00]"
+	GEID("PPTierMultiplierINew").textContent = (player.upgradeLevels.PPTierMultiplierI < player.upgradeCaps.PPTierMultiplierI) ? "(+" + getUpgradeEffect("PPTierMultiplierI").toFixed(1) + "x -> +" + getUpgradeEffect("PPTierMultiplierI",1).toFixed(1) + "x)" : "[+16.0x]"
+	GEID("PPTierFrequencyINew").textContent = (player.upgradeLevels.PPTierFrequencyI < player.upgradeCaps.PPTierFrequencyI) ? "(-" + getUpgradeEffect("PPTierFrequencyI").toFixed(1) + " -> -" + getUpgradeEffect("PPTierFrequencyI",1).toFixed(1) + ")" : "[-4.0]"
+	GEID("HigherMergeTierINew").textContent = (player.upgradeLevels.HigherMergeTierI < player.upgradeCaps.HigherMergeTierI) ? "(" + fix(getUpgradeEffect("HigherMergeTierI")*100) + "% -> " + fix(getUpgradeEffect("HigherMergeTierI",1)*100) + "%)" : "[90%]"
+	GEID("MergeGoldIINew").textContent = (player.upgradeLevels.MergeGoldII < player.upgradeCaps.MergeGoldII) ? "(+" + getUpgradeEffect("MergeGoldII").toFixed(1) + " -> +" + getUpgradeEffect("MergeGoldII",1).toFixed(1) + ")" : "[+19.0]"
+	GEID("MergePointsPassiveINew").textContent = (player.upgradeLevels.MergePointsPassiveI < player.upgradeCaps.MergePointsPassiveI) ? "(" + (getUpgradeEffect("MergePointsPassiveI")*100).toFixed(1) + "% -> " + (getUpgradeEffect("MergePointsPassiveI",1)*100).toFixed(1) + "%)" : "[100.0%]"
+	GEID("PointsTierBaseINew").textContent = (player.upgradeLevels.PointsTierBaseI < player.upgradeCaps.PointsTierBaseI) ? "(+" + getUpgradeEffect("PointsTierBaseI").toFixed(1) + " -> +" + getUpgradeEffect("PointsTierBaseI",1).toFixed(1) + ")" : "[+1.0]"
+}
+function saveGame() {
+	localStorage.mergerSave = JSON.stringify(player)
+}
+function softlockCheck() {
+
+	//look for duplicates
+	var tileAppeared = {}
+	for (let x in player.map) {
+		if (x*1 >= player.width) break;
+		for (let y in player.map[x]) {
+			if (y*1 >= player.height) break;
+			if (tileAppeared[player.map[x][y]] == undefined) tileAppeared[player.map[x][y]] = 1
+			else return;
+		}
+	}
+
+	//clear
+	for (let x in player.map) {
+		for (let y in player.map[x]) player.map[x][y] = 0
+	}
+}
+function spawnTile() {
+
+	//get spawning locations
+	var slots = []
+	for (let x in player.map) {
+		if (x*1 >= player.width) break;
+		for (let y in player.map[x]) {
+			if (y*1 >= player.height) break;
+			if (x*1 == player.x && y*1 == player.y) continue;
+			if (!player.map[x][y]) slots.push([x*1,y*1])
+		}
+	}
+
+	//no locations
+	if (slots.length == 0) {
+		softlockCheck()
+		return
+	}
+
+	//spawn
+	var target = slots[Math.floor(random()*slots.length)]
+	player.map[target[0]][target[1]] = weighted_random(spawnTable)*1
+	mergeCheckSingle(target[0],target[1])
+}
+function update() {
+
+	//spawn tile
+	toSpawn += player.spawnRate
+	while (toSpawn >= 20) {
+		spawnTile()
+		toSpawn -= 20
+	}
+
+	//update stats
+	updateStats()
+	generate()
+
+	//unlock xp
+	if (player.highestTile >= 8) player.xpUnlocked = true
+
+	//unlock prestige
+	if (player.highestTile >= 11) player.prestigeUnlocked = true
+
+	//unlock gold
+	if (gt(player.gold,0)) player.goldUnlocked = true
+
+
+	//change canvas size based on w/h
+	canvas.width = 40*player.width
+	canvas.height = 40*player.height
+	render()
+
+}
+function updateStats() {
+	player.width = 4 + getUpgradeEffect("WidthI") + getUpgradeEffect("WidthII")
+	player.height = 3 + getUpgradeEffect("HeightI") + getUpgradeEffect("HeightII")
+	player.spawnRate = getUpgradeEffect("SpawnRateI") * getUpgradeEffect("SpawnRateII") * getUpgradeEffect("SpawnRateIII")
+	
+	//spawn table
+	spawnTable = {}
+	var meanPerLevel = 0.1 + getUpgradeEffect("LevelTierI")
+	player.mean = 1+(player.level-1)*meanPerLevel + getUpgradeEffect("SpawnTierI")
+	var i = Math.floor(player.mean), j = -1
+	while (++j < 5) {
+		spawnTable[i+j] = 10**(-abs(player.mean-i-j))
+	}
+}
+//to do list>...
+/*
+stars
+costs: 2e3 5e3 1e4 2e4 5e4 1e5 2e5 5e5 1e6 1e7 (i think)
+
+unlock generator
+
+research smth
+
+*/
+</script>
+</html>
